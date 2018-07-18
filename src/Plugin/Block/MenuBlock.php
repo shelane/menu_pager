@@ -4,10 +4,11 @@ namespace Drupal\menu_pager\Plugin\Block;
 
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Cache\Cache;
-use Drupal\Core\Url;
+use Drupal\Core\Link;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Menu\MenuLinkTreeInterface;
 use Drupal\Core\Menu\MenuActiveTrailInterface;
+use Drupal\Core\Menu\MenuLinkManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -38,6 +39,11 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
   protected $menuActiveTrail;
 
   /**
+   * @var \Drupal\Core\Menu\MenuLinkManagerInterface
+   */
+  protected $menuLinkManager;
+
+  /**
    * Constructs a new MenuBlock.
    *
    * @param array $configuration
@@ -51,12 +57,12 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
    * @param \Drupal\Core\Menu\MenuActiveTrailInterface $menu_active_trail
    *   The active menu trail service.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, MenuLinkTreeInterface $menu_tree, MenuActiveTrailInterface $menu_active_trail) {
+  public function __construct(array $configuration, $plugin_id, array $plugin_definition, MenuLinkTreeInterface $menu_tree, MenuActiveTrailInterface $menu_active_trail, MenuLinkManagerInterface $menu_link_manager) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->menuTree = $menu_tree;
     $this->menuActiveTrail = $menu_active_trail;
+    $this->menuLinkManager = $menu_link_manager;
   }
-
 
   /**
    * {@inheritdoc}
@@ -67,10 +73,10 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
       $plugin_id,
       $plugin_definition,
       $container->get('menu.link_tree'),
-      $container->get('menu.active_trail')
+      $container->get('menu.active_trail'),
+      $container->get('plugin.manager.menu.link')
     );
   }
-  
 
   /**
    * {@inheritdoc}
@@ -78,17 +84,15 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
   public function blockForm($form, FormStateInterface $form_state) {
     $config = $this->configuration;
 
-    $defaults = $this->defaultConfiguration();
     $form['menu_pager_restrict_to_parent'] = [
       '#type' => 'checkbox',
-      '#title' => t('Restrict to parent'),
+      '#title' => $this->t('Restrict to parent'),
       '#default_value' => isset($config['menu_pager_restrict_to_parent']) ? $config['menu_pager_restrict_to_parent'] : '',
-      '#description' => t('If checked, only previous and next links with the same menu parent as the active menu link will be used.'),
+      '#description' => $this->t('If checked, only previous and next links with the same menu parent as the active menu link will be used.'),
     ];
 
     return $form;
   }
-
 
   /**
    * {@inheritdoc}
@@ -121,7 +125,7 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
       // Previous link.
       if (!empty($navigation['previous'])) {
         $items['previous'] = [
-          '#markup' => \Drupal::l('<< ' . $navigation['previous']['link_title'], $navigation['previous']['url']),
+          '#markup' => Link::fromTextAndUrl('<< ' . $navigation['previous']['link_title'], $navigation['previous']['url'])->toString(),
           '#wrapper_attributes' => ['class' => 'menu-pager-previous'],
         ];
       }
@@ -129,7 +133,7 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
       // Next link.
       if (!empty($navigation['next'])) {
         $items['next'] = [
-          '#markup' => \Drupal::l($navigation['next']['link_title'] . ' >>', $navigation['next']['url']),
+          '#markup' => Link::fromTextAndUrl($navigation['next']['link_title'] . ' >>', $navigation['next']['url'])->toString(),
           '#wrapper_attributes' => ['class' => 'menu-pager-next'],
         ];
       }
@@ -174,9 +178,8 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
 
       // Need to build api for ignore links
       $ignore = [];
+      $flat_links = [];
       $this->menu_pager_flatten_tree($tree, $flat_links, $ignore);
-
-      $menu_link_manager = \Drupal::service('plugin.manager.menu.link');
 
       // Find previous and next links.
       while ($flat_link = current($flat_links)) {
@@ -193,7 +196,7 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
           // Add if found and not restricting to parent, or both links share same
           // parent.
           if ($parent = $menu_link->getParent()) {
-            $parent = $menu_link_manager->createInstance($parent);
+            $parent = $this->menuLinkManager->createInstance($parent);
             $plid = $parent->getPluginId();
           }
           if ($previous && (!$restrict_to_parent || $previous['plid'] === $plid)) {
