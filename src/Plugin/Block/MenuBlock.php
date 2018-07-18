@@ -39,6 +39,8 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
   protected $menuActiveTrail;
 
   /**
+   * The menu link manager.
+   *
    * @var \Drupal\Core\Menu\MenuLinkManagerInterface
    */
   protected $menuLinkManager;
@@ -117,7 +119,7 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
     if (
       (isset($menu_link))
       && ($menu_link->getMenuName() == $block_menu)
-      && ($navigation = $this->menu_pager_get_navigation($menu_link, $config['menu_pager_restrict_to_parent']))
+      && ($navigation = $this->menuPagerGetNavigation($menu_link, $config['menu_pager_restrict_to_parent']))
       && (isset($navigation['previous']) || isset($navigation['next']))
     ) {
       $items = array();
@@ -151,16 +153,15 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
   /**
    * Returns array with previous and next links for a given $menu_link.
    *
-   * @param $menu_link
+   * @param array $menu_link
    *   A menu link object.
-   * @param $restrict_to_parent
+   * @param boolean $restrict_to_parent
    *   (optional) A boolean to indicate whether or not to restrict the previous
    *   and next links to the menu's parent. Defaults to FALSE.
    *
-   * @return
-   *   An array with 'previous' and 'next' links, if found.
+   * @return array with 'previous' and 'next' links, if found.
    */
-  public function menu_pager_get_navigation($menu_link, $restrict_to_parent = FALSE) {
+  public function menuPagerGetNavigation($menu_link, $restrict_to_parent = FALSE) {
     $navigation = &drupal_static(__FUNCTION__, array());
     $menu_name = $menu_link->getMenuName();
 
@@ -176,10 +177,10 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
       ];
       $tree = $this->menuTree->transform($tree, $manipulators);
 
-      // Need to build api for ignore links
+      // Need to build api for ignore links.
       $ignore = [];
       $flat_links = [];
-      $this->menu_pager_flatten_tree($tree, $flat_links, $ignore);
+      $this->menuPagerFlattenTree($tree, $flat_links, $ignore);
 
       // Find previous and next links.
       while ($flat_link = current($flat_links)) {
@@ -193,8 +194,8 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
           }
           $next = next($flat_links);
           $plid = '';
-          // Add if found and not restricting to parent, or both links share same
-          // parent.
+          // Add if found and not restricting to parent, or both links share
+          // same parent.
           if ($parent = $menu_link->getParent()) {
             $parent = $this->menuLinkManager->createInstance($parent);
             $plid = $parent->getPluginId();
@@ -218,25 +219,25 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
   /**
    * Recursively flattens tree of menu links.
    */
-  public function menu_pager_flatten_tree($menu_links, &$flat_links, $ignore, $plid = '') {
+  public function menuPagerFlattenTree($menu_links, &$flat_links, $ignore, $plid = '') {
     $menu_links = array_values($menu_links);
-    foreach($menu_links as $key => $item) {
+    foreach ($menu_links as $key => $item) {
       $uuid = $item->link->getPluginId();
       $link_title = $item->link->getTitle();
       $url = $item->link->getUrlObject();
       $link_path = $url->toString();
       if (!in_array($link_path, $ignore) && $item->link->isEnabled()) {
-        $flat_links[] = array(
+        $flat_links[] = [
           'mlid' => $uuid,
           'plid' => $plid,
           'link_path' => $link_path,
           'link_title' => $link_title,
           'url' => $url,
-        );
+        ];
       }
 
       if ($item->hasChildren) {
-        $this->menu_pager_flatten_tree($item->subtree, $flat_links, $ignore, $uuid);
+        $this->menuPagerFlattenTree($item->subtree, $flat_links, $ignore, $uuid);
       }
     }
   }
@@ -247,4 +248,5 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
   public function getCacheContexts() {
     return Cache::mergeContexts(parent::getCacheContexts(), ['url.path']);
   }
+
 }
