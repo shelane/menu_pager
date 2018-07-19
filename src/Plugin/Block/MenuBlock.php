@@ -6,6 +6,7 @@ use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Link;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Menu\MenuTreeParameters;
 use Drupal\Core\Menu\MenuLinkTreeInterface;
 use Drupal\Core\Menu\MenuActiveTrailInterface;
 use Drupal\Core\Menu\MenuLinkManagerInterface;
@@ -58,6 +59,8 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
    *   The menu tree service.
    * @param \Drupal\Core\Menu\MenuActiveTrailInterface $menu_active_trail
    *   The active menu trail service.
+   * @param \Drupal\Core\Menu\MenuLinkManagerInterface $menu_link_manager
+   *   The menu link manager.
    */
   public function __construct(array $configuration, $plugin_id, array $plugin_definition, MenuLinkTreeInterface $menu_tree, MenuActiveTrailInterface $menu_active_trail, MenuLinkManagerInterface $menu_link_manager) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
@@ -122,7 +125,7 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
       && ($navigation = $this->menuPagerGetNavigation($menu_link, $config['menu_pager_restrict_to_parent']))
       && (isset($navigation['previous']) || isset($navigation['next']))
     ) {
-      $items = array();
+      $items = [];
 
       // Previous link.
       if (!empty($navigation['previous'])) {
@@ -153,21 +156,22 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
   /**
    * Returns array with previous and next links for a given $menu_link.
    *
-   * @param array $menu_link
+   * @param object $menu_link
    *   A menu link object.
-   * @param boolean $restrict_to_parent
+   * @param bool $restrict_to_parent
    *   (optional) A boolean to indicate whether or not to restrict the previous
    *   and next links to the menu's parent. Defaults to FALSE.
    *
-   * @return array with 'previous' and 'next' links, if found.
+   * @return array
+   *    An array with 'previous' and 'next' links, if found.
    */
   public function menuPagerGetNavigation($menu_link, $restrict_to_parent = FALSE) {
-    $navigation = &drupal_static(__FUNCTION__, array());
+    $navigation = &drupal_static(__FUNCTION__, []);
     $menu_name = $menu_link->getMenuName();
 
     if (!isset($navigation[$menu_name])) {
       // Build flat tree of main menu links.
-      $parameters = new \Drupal\Core\Menu\MenuTreeParameters();
+      $parameters = new MenuTreeParameters();
       $parameters->expandedParents;
 
       $tree = $this->menuTree->load($menu_name, $parameters);
@@ -221,7 +225,7 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
    */
   public function menuPagerFlattenTree($menu_links, &$flat_links, $ignore, $plid = '') {
     $menu_links = array_values($menu_links);
-    foreach ($menu_links as $key => $item) {
+    foreach ($menu_links as $item) {
       $uuid = $item->link->getPluginId();
       $link_title = $item->link->getTitle();
       $url = $item->link->getUrlObject();
