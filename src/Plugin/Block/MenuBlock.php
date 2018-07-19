@@ -163,7 +163,7 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
    *   and next links to the menu's parent. Defaults to FALSE.
    *
    * @return array
-   *    An array with 'previous' and 'next' links, if found.
+   *   An array with 'previous' and 'next' links, if found.
    */
   public function menuPagerGetNavigation($menu_link, $restrict_to_parent = FALSE) {
     $navigation = &drupal_static(__FUNCTION__, []);

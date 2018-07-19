@@ -10,10 +10,13 @@ CONTENTS OF THIS FILE
 INTRODUCTION
 ------------
 
-Menu Pager adds a block for each menu that adds previous and next link navigation based on the current page.
+Menu Pager adds a block for each menu that adds previous and next link
+navigation based on the current page.
 
-It does this by flattening the menu tree to calculate which links should come before and after the menu link corresponding to the current page.
-This can optionally be restricted to links with the same parent as the active menu link (by default, it uses traverses the entire menu tree).
+It does this by flattening the menu tree to calculate which links should
+come before and after the menu link corresponding to the current page.
+This can optionally be restricted to links with the same parent as the 
+active menu link (by default, it uses traverses the entire menu tree).
 
  * For a full description of the module, visit the project page:
    https://www.drupal.org/project/menu_pager
