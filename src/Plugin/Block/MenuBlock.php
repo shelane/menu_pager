@@ -181,8 +181,8 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
       ];
       $tree = $this->menuTree->transform($tree, $manipulators);
 
-      // Need to build api for ignore links.
-      $ignore = [];
+      $ignore = $this->menuPagerIgnorePaths($menu_name);
+
       $flat_links = [];
       $this->menuPagerFlattenTree($tree, $flat_links, $ignore);
 
@@ -229,8 +229,9 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
       $uuid = $item->link->getPluginId();
       $link_title = $item->link->getTitle();
       $url = $item->link->getUrlObject();
+      $link_rote = $item->link->getRouteName();
       $link_path = $url->toString();
-      if (!in_array($link_path, $ignore) && $item->link->isEnabled()) {
+      if (!in_array($link_rote, $ignore) && !in_array($link_path, $ignore) && $item->link->isEnabled()) {
         $flat_links[] = [
           'mlid' => $uuid,
           'plid' => $plid,
@@ -247,10 +248,24 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
   }
 
   /**
+   * Define paths to NOT include in the pager.
+   */
+  function menuPagerIgnorePaths($menu_name) {
+    $paths = &drupal_static(__FUNCTION__, []);
+
+    if (!isset($paths[$menu_name])) {
+      $module_handler = \Drupal::moduleHandler();
+      $paths[$menu_name] = $module_handler->invokeAll('menu_pager_ignore_paths', [$menu_name]);
+      $module_handler->alter('menu_pager_ignore_paths', $paths[$menu_name], $menu_name);
+    }
+
+    return $paths[$menu_name];
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function getCacheContexts() {
     return Cache::mergeContexts(parent::getCacheContexts(), ['url.path']);
   }
-
 }
