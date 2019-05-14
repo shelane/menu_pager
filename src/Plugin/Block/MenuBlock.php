@@ -129,16 +129,26 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
 
       // Previous link.
       if (!empty($navigation['previous'])) {
+        $link_title_previous = [
+          '#theme' => 'menu_pager_previous',
+          '#title' => $navigation['previous']['link_title']
+        ];
+
         $items['previous'] = [
-          '#markup' => Link::fromTextAndUrl('<< ' . $navigation['previous']['link_title'], $navigation['previous']['url'])->toString(),
+          '#markup' => Link::fromTextAndUrl($link_title_previous, $navigation['previous']['url'])->toString(),
           '#wrapper_attributes' => ['class' => 'menu-pager-previous'],
         ];
       }
 
       // Next link.
       if (!empty($navigation['next'])) {
+        $link_title_next = [
+          '#theme' => 'menu_pager_next',
+          '#title' => $navigation['next']['link_title']
+        ];
+
         $items['next'] = [
-          '#markup' => Link::fromTextAndUrl($navigation['next']['link_title'] . ' >>', $navigation['next']['url'])->toString(),
+          '#markup' => Link::fromTextAndUrl($link_title_next, $navigation['next']['url'])->toString(),
           '#wrapper_attributes' => ['class' => 'menu-pager-next'],
         ];
       }
