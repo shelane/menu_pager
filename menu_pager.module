@@ -18,3 +18,17 @@ function menu_pager_menu_pager_ignore_paths($menu_name) {
 
   return $paths;
 }
+
+/**
+ * Implements hook_theme().
+ */
+function menu_pager_theme() {
+  return [
+    'menu_pager_previous' => [
+      'variables' => ['title' => NULL],
+    ],
+    'menu_pager_next' => [
+      'variables' => ['title' => NULL],
+    ],
+  ];
+}
