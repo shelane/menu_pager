@@ -167,10 +167,10 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
 
       // Previous link.
       if (!empty($navigation['previous'])) {
-        $previous_lable = $config['menu_pager_custom_label'] ? $config['menu_pager_previous_label'] : '<< ';
+        $previous_label = $config['menu_pager_custom_label'] ? $config['menu_pager_previous_label'] : '<< ';
         $link_title_previous = [
           '#theme' => 'menu_pager_previous',
-          '#title' => $previous_lable . $navigation['previous']['link_title']
+          '#title' => $previous_label . $navigation['previous']['link_title']
         ];
 
         $items['previous'] = [
