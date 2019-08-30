@@ -96,6 +96,41 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
       '#description' => $this->t('If checked, only previous and next links with the same menu parent as the active menu link will be used.'),
     ];
 
+    $form['menu_pager_custom_label'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Display custom label'),
+      '#default_value' => isset($config['menu_pager_custom_label']) ? $config['menu_pager_custom_label'] : '',
+      '#description' => $this->t('If checked, the below previous and next label values will display.'),
+    ];
+
+    $form['menu_pager_previous_label'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Previous label'),
+      '#description' => $this->t('This will overwrite the text for the previous label.<br />Leave empty for node title'),
+      '#maxlength' => 64,
+      '#size' => 64,
+      '#default_value' => isset($config['menu_pager_previous_label']) ? $config['menu_pager_previous_label'] : '',
+      '#states' => [
+        'visible' => [
+          ':input[id="edit-settings-menu-pager-custom-label"]' => ['checked' => TRUE],
+        ],
+      ],
+    ];
+
+    $form['menu_pager_next_label'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Next label'),
+      '#description' => $this->t('This will overwrite the text for the next label.<br />Leave empty for node title'),
+      '#maxlength' => 64,
+      '#size' => 64,
+      '#default_value' => isset($config['menu_pager_next_label']) ? $config['menu_pager_next_label'] : '',
+      '#states' => [
+        'visible' => [
+          ':input[id="edit-settings-menu-pager-custom-label"]' => ['checked' => TRUE],
+        ],
+      ],
+    ];
+
     return $form;
   }
 
@@ -106,6 +141,9 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
     parent::blockSubmit($form, $form_state);
     $values = $form_state->getValues();
     $this->configuration['menu_pager_restrict_to_parent'] = $values['menu_pager_restrict_to_parent'];
+    $this->configuration['menu_pager_custom_label'] = $values['menu_pager_custom_label'];
+    $this->configuration['menu_pager_previous_label'] = $values['menu_pager_previous_label'];
+    $this->configuration['menu_pager_next_label'] = $values['menu_pager_next_label'];
   }
 
   /**
@@ -129,9 +167,10 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
 
       // Previous link.
       if (!empty($navigation['previous'])) {
+        $previous_lable = $config['menu_pager_custom_label'] ? $config['menu_pager_previous_label'] : '<< ';
         $link_title_previous = [
           '#theme' => 'menu_pager_previous',
-          '#title' => $navigation['previous']['link_title']
+          '#title' => $previous_lable . $navigation['previous']['link_title']
         ];
 
         $items['previous'] = [
@@ -142,9 +181,10 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
 
       // Next link.
       if (!empty($navigation['next'])) {
+        $next_label = $config['menu_pager_custom_label'] ? $config['menu_pager_next_label'] : ' >>';
         $link_title_next = [
           '#theme' => 'menu_pager_next',
-          '#title' => $navigation['next']['link_title']
+          '#title' => $navigation['next']['link_title'] . $next_label
         ];
 
         $items['next'] = [
@@ -277,5 +317,14 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
    */
   public function getCacheContexts() {
     return Cache::mergeContexts(parent::getCacheContexts(), ['url.path']);
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * @todo Make cacheable in https://www.drupal.org/node/2483181
+   */
+  public function getCacheMaxAge() {
+    return 0;
   }
 }
