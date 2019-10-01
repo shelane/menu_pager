@@ -22,13 +22,13 @@ function menu_pager_menu_pager_ignore_paths($menu_name) {
 /**
  * Implements hook_theme().
  */
-function menu_pager_theme() {
+function menu_pager_theme($existing, $type, $theme, $path) {
   return [
-    'menu_pager_previous' => [
-      'variables' => ['title' => NULL],
-    ],
-    'menu_pager_next' => [
-      'variables' => ['title' => NULL],
+    'menu_pager' => [
+      'variables' => [
+        'previous' => NULL,
+        'next' => NULL,
+        ],
     ],
   ];
 }
