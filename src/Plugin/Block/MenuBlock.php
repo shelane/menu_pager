@@ -183,8 +183,8 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
 
       return [
         '#theme' => 'menu_pager',
-        '#previous' => $items['previous] ?? '',
-        '#next' =? $items['next] ?? '',
+        '#next' => $items['next'] ?? '',
+        '#previous' => $items['previous'] ?? '',
         '#attributes' => ['class' => ['menu-pager', 'clearfix']],
         '#attached' => ['library' => ['menu_pager/menu_pager']],
       ];
