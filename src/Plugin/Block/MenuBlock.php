@@ -4,6 +4,7 @@ namespace Drupal\menu_pager\Plugin\Block;
 
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Menu\MenuTreeParameters;
@@ -47,6 +48,13 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
   protected $menuLinkManager;
 
   /**
+   * The module handler.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  protected $moduleHandler;
+
+  /**
    * Constructs a new MenuBlock.
    *
    * @param array $configuration
@@ -61,12 +69,15 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
    *   The active menu trail service.
    * @param \Drupal\Core\Menu\MenuLinkManagerInterface $menu_link_manager
    *   The menu link manager.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
+   *   The module handler.
    */
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition, MenuLinkTreeInterface $menu_tree, MenuActiveTrailInterface $menu_active_trail, MenuLinkManagerInterface $menu_link_manager) {
+  public function __construct(array $configuration, $plugin_id, array $plugin_definition, MenuLinkTreeInterface $menu_tree, MenuActiveTrailInterface $menu_active_trail, MenuLinkManagerInterface $menu_link_manager, ModuleHandlerInterface $module_handler) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->menuTree = $menu_tree;
     $this->menuActiveTrail = $menu_active_trail;
     $this->menuLinkManager = $menu_link_manager;
+    $this->moduleHandler = $module_handler;
   }
 
   /**
@@ -79,7 +90,8 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
       $plugin_definition,
       $container->get('menu.link_tree'),
       $container->get('menu.active_trail'),
-      $container->get('plugin.manager.menu.link')
+      $container->get('plugin.manager.menu.link'),
+      $container->get('module_handler')
     );
   }
 
@@ -199,8 +211,8 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
         '#attributes' => ['class' => ['menu-pager', 'clearfix']],
         '#attached' => ['library' => ['menu_pager/menu_pager']],
       ];
-
     }
+    return [];
   }
 
   /**
@@ -214,6 +226,8 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
    *
    * @return array
    *   An array with 'previous' and 'next' links, if found.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   public function menuPagerGetNavigation($menu_link, $restrict_to_parent = FALSE) {
     $navigation = &drupal_static(__FUNCTION__, []);
@@ -300,13 +314,12 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
   /**
    * Define paths to NOT include in the pager.
    */
-  function menuPagerIgnorePaths($menu_name) {
+  public function menuPagerIgnorePaths($menu_name) {
     $paths = &drupal_static(__FUNCTION__, []);
 
     if (!isset($paths[$menu_name])) {
-      $module_handler = \Drupal::moduleHandler();
-      $paths[$menu_name] = $module_handler->invokeAll('menu_pager_ignore_paths', [$menu_name]);
-      $module_handler->alter('menu_pager_ignore_paths', $paths[$menu_name], $menu_name);
+      $paths[$menu_name] = $this->moduleHandler->invokeAll('menu_pager_ignore_paths', [$menu_name]);
+      $this->moduleHandler->alter('menu_pager_ignore_paths', $paths[$menu_name], $menu_name);
     }
 
     return $paths[$menu_name];
@@ -327,4 +340,5 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
   public function getCacheMaxAge() {
     return 0;
   }
+
 }
