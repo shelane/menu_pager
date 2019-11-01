@@ -2,7 +2,6 @@
 
 /**
  * @file
- *
  * Menu Pager adds a block for each menu that adds previous
  * and next link navigation based on the current page.
  */
@@ -28,7 +27,7 @@ function menu_pager_theme($existing, $type, $theme, $path) {
       'variables' => [
         'previous' => NULL,
         'next' => NULL,
-        ],
+      ],
     ],
   ];
 }

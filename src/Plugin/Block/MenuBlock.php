@@ -203,6 +203,7 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
    *
    * @return array
    *   An array with 'previous' and 'next' links, if found.
+   *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   public function menuPagerGetNavigation($menu_link, $restrict_to_parent = FALSE) {
@@ -290,7 +291,7 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
   /**
    * Define paths to NOT include in the pager.
    */
-  function menuPagerIgnorePaths($menu_name) {
+  public function menuPagerIgnorePaths($menu_name) {
     $paths = &drupal_static(__FUNCTION__, []);
 
     if (!isset($paths[$menu_name])) {
@@ -317,4 +318,5 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
   public function getCacheMaxAge() {
     return 0;
   }
+
 }
