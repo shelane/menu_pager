@@ -188,8 +188,8 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
         '#attributes' => ['class' => ['menu-pager', 'clearfix']],
         '#attached' => ['library' => ['menu_pager/menu_pager']],
       ];
-
     }
+    return [];
   }
 
   /**
@@ -203,6 +203,7 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
    *
    * @return array
    *   An array with 'previous' and 'next' links, if found.
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   public function menuPagerGetNavigation($menu_link, $restrict_to_parent = FALSE) {
     $navigation = &drupal_static(__FUNCTION__, []);
