@@ -180,34 +180,23 @@ class MenuBlock extends BlockBase implements ContainerFactoryPluginInterface {
       // Previous link.
       if (!empty($navigation['previous'])) {
         $previous_label = $config['menu_pager_custom_label'] ? $config['menu_pager_previous_label'] : '<< ';
-        $link_title_previous = [
-          '#theme' => 'menu_pager_previous',
-          '#title' => $previous_label . $navigation['previous']['link_title']
-        ];
+        $link_title_previous = $previous_label . $navigation['previous']['link_title'];
 
-        $items['previous'] = [
-          '#markup' => Link::fromTextAndUrl($link_title_previous, $navigation['previous']['url'])->toString(),
-          '#wrapper_attributes' => ['class' => 'menu-pager-previous'],
-        ];
+        $items['previous'] = Link::fromTextAndUrl($link_title_previous, $navigation['previous']['url'])->toRenderable();
       }
 
       // Next link.
       if (!empty($navigation['next'])) {
         $next_label = $config['menu_pager_custom_label'] ? $config['menu_pager_next_label'] : ' >>';
-        $link_title_next = [
-          '#theme' => 'menu_pager_next',
-          '#title' => $navigation['next']['link_title'] . $next_label
-        ];
+        $link_title_next = $navigation['next']['link_title'] . $next_label;
 
-        $items['next'] = [
-          '#markup' => Link::fromTextAndUrl($link_title_next, $navigation['next']['url'])->toString(),
-          '#wrapper_attributes' => ['class' => 'menu-pager-next'],
-        ];
+        $items['next'] = Link::fromTextAndUrl($link_title_next, $navigation['next']['url'])->toRenderable();
       }
 
       return [
-        '#theme' => 'item_list',
-        '#items' => $items,
+        '#theme' => 'menu_pager',
+        '#next' => $items['next'] ?? '',
+        '#previous' => $items['previous'] ?? '',
         '#attributes' => ['class' => ['menu-pager', 'clearfix']],
         '#attached' => ['library' => ['menu_pager/menu_pager']],
       ];
